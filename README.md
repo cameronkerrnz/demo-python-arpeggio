@@ -47,50 +47,23 @@ source ./venv/bin/activate
 python -m pip install --upgrade pip wheel
 pip install -r requirements.txt
 
+python composition_listsndicts.py
 python composition_namedtuples.py
 ```
-
-## Find the bug!
-
-There is a bug in the code. Given the following input:
-
-`Shell: 90% Cotton Pile, 10% Polyester; Lining: 100% Cotton`
-
-We don't see the Lining appearing in the resulting output.
-
-Try this:
-
-- Set `debug=True` to the parser creation (ParserPEG). When the parser rules, it will create two 'dot' files that will visualise its structure. If you have the `dot` tool installed (part of `graphviz`), you can render these as images and view them.
-- Run a parse for the input you wish to investigate (eg. comment out all other test inputs)
-
-```bash
-dot -Tpng -O label_peg_parser_model.dot 
-dot -Tpng -O label_parse_tree.dot 
-```
-
-label_parse_tree.dot.png will be instructive. I've provided you a copy if you don't have `dot` installed.
-
-![label_parse_tree.dot.png shows the AST produced for an input](./label_parse_tree.dot.png)
-
-Check the following:
-- Does 'Lining' appear in the AST? It should be a `part_name`.
-- Does `Part(name='Lining'...` appears in the Parsed Label line?
-- A `Label` should have a list of `Part`s; which visitor method should be doing this? (hint: the `Label` named tuple should model the `label` grammar rule)
-- Add a debugging print statement (eg. `print(f"visit_label {children!r}")`) to the start of the visitor method that visits the `label` node to see what children it has.
-- Fix that bug.
-- This will cause a follow-on bug. Note that `label` is currently the only place where our grammar has an choice (`/`). When we recreate the label, we need to be mindful that we match these different choices, and that we have a case for when Label.contents is a composition or a list of parts.
 
 ## Break the parser
 
 I shouldn't take much imagination to find inputs from the wild that would break this. Try the following:
 
+- Try '90% Cotton 10% Polyester', which is missing a comma.
 - What happens to multiple spaces in some places?
 - Can you have 0 spaces in various places?
 - Put some brackets somewhere -- eg. 'Shell (cover): ...'
-- Adjust the parser so it can recognise 'material xx%' or 'xx% material'
 - Try more labels that use different formats.
+- What do you think of the error messages the parser produces?
+- How robust is the parser?
 
-## Exercises
+## Test Your Understanding
 
 - In the code `ParserPEG(label_grammar, "label", skipws=False)`, why is `skipws=False` important?
 - The `label` production in label.peg mentions `EOF` to require that all that input is parsed. Imagine you wanted to make a parser just for `few_words` so you can test just that part of the parser. What would happen if you created a parser using `ParserPEG(label_grammar, "few_words", skipws=False)`? Make a new production `few_words_root` that matches a `few_words` and then EOF. Use this parser to test some of examples.
@@ -106,8 +79,12 @@ label_parse_tree.dot.png will be instructive.
 
 ![label_parse_tree.dot.png shows the AST produced for an input](./label_parse_tree.dot.png)
 
-## TODO
+## Restructure the code and make Unit Tests
 
-- Make the code more testable and refactor into a module.
-- Make a better test-suite.
-- Find some examples where in the input doesn't quite conform to the grammar, but should be able to.
+Before you go on to extend the grammar, you **REALLY MUST** create some unit-tests, as the liklihood of introducing new bugs will be reasonably high. Currently the code provided just shows what was output without asserting whether it was the expected output.
+
+## _THEN_ Extend the parser
+
+- Adjust the parser so it can recognise 'material xx%' or 'xx% material'
+- Adjust the parser so it can handle '90% Cotton 10% Polyester', which has a comma missing.
+

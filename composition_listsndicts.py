@@ -1,6 +1,8 @@
 import arpeggio
 from arpeggio.peg import ParserPEG, PTNodeVisitor, visit_parse_tree
 import json
+from textwrap import dedent
+import timeit
 
 class LabelVisitor(PTNodeVisitor):
 
@@ -82,18 +84,52 @@ except arpeggio.NoMatch as e:
 # print(ast.tree_str())
 
 for input_ in [
-    'Shell: 90% Cotton Pile, 10% Recycled Polyester',
-    'Shell Cover: 90% Cotton Pile',
-    'Shell: 90% Cotton Pile, 10% Polyester; Lining: 100% Cotton',
-    '90% Cotton, 5% Polyester, 5% Lycra Spandex',
+    'Shell: 90% Cotton, 10% Recycled Polyester',
+    'Shell Cover: 90% Cotton',
+    'Shell: 90% Cotton, 10% Polyester; Lining: 100% Cotton',
+    '90% Cotton, 5% Polyester, 5% Lycra',
+    '100% Unbleached Organic Hemp',
     '99.5% Cotton, 0.5% Magic',
+    
+    # Some failure cases
+    '90% Cotton 10% Polyester',
     ]:
 
-    ast = label_parser.parse(input_)
+    print("Input label : ", input_)
+    try:
+        ast = label_parser.parse(input_)
+    except arpeggio.NoMatch as e:
+        print("Error       : ", e)
+        print("---")
+        continue
     result = visit_parse_tree(ast, LabelVisitor())
 
-    print("Input label : ", input_)
+    print("Parsed      : ", result)
     print("JSON        : ", json.dumps(result))
     print("Cleaned     : ", stringify(result))
     print("---")
 
+# exit(0)
+
+# Performance
+
+print("Timings (µs) for creating the parser: ", end="")
+n=100
+print([ f"{t/n * 1_000_000:.0f}µs" for t in timeit.repeat(
+    '''ParserPEG(label_grammar, "label", skipws=False)''',
+    globals={'ParserPEG': ParserPEG, 'label_grammar': label_grammar}, number=n)])
+
+print("Timings for parsing an input: ", end="")
+n=1000
+print([ f"{t/n * 1_000_000:.0f}µs" for t in timeit.repeat(
+    '''label_parser.parse('Shell: 90% Cotton Pile, 10% Polyester; Lining: 100% Cotton')''',
+    globals={'label_parser': label_parser}, number=n)])
+
+print("Timings for stringifying a label: ", end="")
+n=1000
+print([ f"{t/n * 1_000_000:.0f}µs" for t in timeit.repeat(
+    dedent('''
+        stringify({'Shell': {'Cotton Pile': 0.9, 'Polyester': 0.1}, 'Lining': {'Cotton': 1.0}})
+        '''),
+    globals={'stringify': stringify},
+    number=n)])
