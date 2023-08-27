@@ -61,7 +61,6 @@ I shouldn't take much imagination to find inputs from the wild that would break 
 - Put some brackets somewhere -- eg. 'Shell (cover): ...'
 - Try more labels that use different formats.
 - What do you think of the error messages the parser produces?
-- How robust is the parser?
 
 ## Test Your Understanding
 
@@ -87,4 +86,4 @@ Before you go on to extend the grammar, you **REALLY MUST** create some unit-tes
 
 - Adjust the parser so it can recognise 'material xx%' or 'xx% material'
 - Adjust the parser so it can handle '90% Cotton 10% Polyester', which has a comma missing.
-
+- How robust is the parser currently?
