@@ -1,0 +1,48 @@
+label <- (
+    composition
+    / part ( PARTSEP SP* part )*
+    ) EOF;
+
+PARTSEP <- ";" ;
+
+// eg. 'Shell: 90% Cotton Pile, 10% Recycled Polyester'
+//      ~~~~~  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+part <- part_name PARTNAMESEP SP+ composition ;
+
+PARTNAMESEP <- ":" ;
+
+// eg. '90% Cotton Pile, 10% Recycled Polyester'
+//      ~~~~~~~~~~~~~~~  ~~~~~~~~~~~~~~~~~~~~~~
+composition <- composition_element ( COMPOSITIONSEP SP* composition_element )* ;
+
+COMPOSITIONSEP <- ',' ;
+
+// eg. '90% Cotton Pile'
+//      ~~~ ~~~~~~~~~~~
+composition_element <- percentage SP* fibre_type ;
+
+percentage <- number '%' ;
+
+// eg. 'Shell' or 'Shell Cover'
+part_name <- few_words ;
+
+// eg. 'Cotton Pile' or 'Polyester'
+fibre_type <- few_words ;
+
+// Why just a 'few' words? No particular reason other than
+// I thought if you ended up matching many words you might
+// not have input that is useful
+// Three words may not be enough though.
+few_words <- word ( SP+ word ( SP+ word )? )? ;
+
+word <- r'[a-zA-Z]+' ;
+
+number <- r'[0-9]+(\.[0-9])?' ;
+
+SP <- " " ;
+
+// 'Shell: 90% Cotton Pile, 10% Recycled Polyester'
+// 'Shell Cover: 90% Cotton Pile'
+// 'Shell: 90% Cotton Pile, 10% Polyester; Lining: 100% Cotton'
+// '90% Cotton, 5% Polyester, 5% Lycra Spandex'
+// '100% BCI Supima Cotton'
